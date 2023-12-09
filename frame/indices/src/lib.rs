@@ -31,6 +31,10 @@ use sp_runtime::{
 	traits::{AtLeast32Bit, LookupError, Saturating, StaticLookup, Zero},
 	MultiAddress,
 };
+
+#[cfg(feature = "try-runtime")]
+use sp_runtime::TryRuntimeError;
+
 use sp_std::prelude::*;
 pub use weights::WeightInfo;
 
@@ -39,6 +43,13 @@ type BalanceOf<T> =
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
 
 pub use pallet::*;
+
+/// The target that is used for the log output emitted by this crate.
+///
+/// Hence you can use this target to selectively increase the log level for this crate.
+///
+/// Example: `RUST_LOG=runtime::contracts=debug my_code --dev`
+const LOG_TARGET: &str = "runtime::indices";
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -276,6 +287,20 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		#[cfg(feature = "try-runtime")]
+		fn try_state(_: BlockNumberFor<T>) -> Result<(), TryRuntimeError> {
+			use sp_core::hexdisplay::HexDisplay;
+
+			log::info!(target: LOG_TARGET, "--------------- INDICES: --------------");
+			for (k, v) in <Accounts<T>>::iter() {
+				log::info!(target: LOG_TARGET, "Index {:?} belongs to {:?}", k, HexDisplay::from(&v.0.encode()));
+			}
+			Ok(())
+		}
+	}
 }
 
 impl<T: Config> Pallet<T> {
@@ -283,7 +308,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Lookup an T::AccountIndex to get an Id, if there's one there.
 	pub fn lookup_index(index: T::AccountIndex) -> Option<T::AccountId> {
-		Accounts::<T>::get(index).map(|x| x.0)
+		<Accounts<T>>::get(index).map(|x| x.0)
 	}
 
 	/// Lookup an address to get an Id, if there's one there.
