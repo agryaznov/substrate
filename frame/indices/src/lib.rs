@@ -296,7 +296,7 @@ pub mod pallet {
 
 			log::info!(target: LOG_TARGET, "--------------- STORAGE KEY DECODE: --------------");
 			for key in [1899u32, 1506u32, 1u32, 257u32] {
-				let idx: T::AccountIndex = key;
+				let idx: T::AccountIndex = key.into();
 				let e = <Accounts<T>>::hashed_key_for(idx);
 				log::info!(target: LOG_TARGET, "Key {:?} encoded as: {:?}", &key, HexDisplay::from(&e));
 			}
