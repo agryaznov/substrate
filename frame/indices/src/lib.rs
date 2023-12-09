@@ -294,9 +294,10 @@ pub mod pallet {
 		fn try_state(_: BlockNumberFor<T>) -> Result<(), TryRuntimeError> {
 			use sp_core::hexdisplay::HexDisplay;
 
-			log::info!(target: LOG_TARGET, "--------------- INDICES: --------------");
-			for (k, v) in <Accounts<T>>::iter() {
-				log::info!(target: LOG_TARGET, "Index {:?} belongs to {:?}", k, HexDisplay::from(&v.0.encode()));
+			log::info!(target: LOG_TARGET, "--------------- STORAGE KEY DECODE: --------------");
+			for key in [1899, 1506, 1, 257] {
+				let e = <Accounts<T>>::hashed_key_for(key as T::AccountIndex);
+				log::info!(target: LOG_TARGET, "Key {:?} encoded as: {:?}", &key, HexDisplay::from(&e));
 			}
 			Ok(())
 		}
